@@ -1,9 +1,8 @@
 import OpenSubtitles from 'opensubtitles-api';
 
 export async function get({ params }) {
-  const { type, id } = params;
+  const { type, id, title } = params;
 
-  // TODO: Move this to .env
   const BASE_MOVIE_DB_URL = import.meta.env.VITE_BASE_MOVIE_DB_URL;
   const MOVIE_DB_API_KEY = import.meta.env.VITE_MOVIE_DB_API_KEY;
 

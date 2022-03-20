@@ -1,8 +1,7 @@
 <script context="module">
-  /** @type {import('./[type]-[id]').Load} */
   export async function load({ params, fetch, session, stuff }) {
-    const { type, id } = params;
-    const { details, subtitles } = await fetch(`/subtitles/${type}-${id}.json`).then((r) => r.json());
+    const { type, id, title } = params;
+    const { details, subtitles } = await fetch(`/subtitles/${type}-${id}-${title}.json`).then((r) => r.json());
 
     return {
       props: {

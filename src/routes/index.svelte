@@ -1,5 +1,5 @@
 <script>
-  import { Link, ListItem, UnorderedList, InlineLoading, Search } from 'carbon-components-svelte';
+  import { Link, ListItem, UnorderedList, Search } from 'carbon-components-svelte';
 
   import debounce from 'lodash/debounce.js';
 
@@ -8,34 +8,18 @@
   let abortController = null;
   let searchResults = [];
 
-  const BASE_MOVIE_DB_URL = import.meta.env.VITE_BASE_MOVIE_DB_URL;
-  const MOVIE_DB_API_KEY = import.meta.env.VITE_MOVIE_DB_API_KEY;
-
-  // TODO: Move to service
-  const fetchSearchResults = (term) => {
+  const fetchSearchResults = async (term) => {
     if (term?.length >= 3) {
-      searching = true;
-
       if (abortController) abortController.abort();
 
       abortController = new AbortController();
       const signal = abortController.signal;
 
-      const url = `${BASE_MOVIE_DB_URL}/search/multi?query=${term}&api_key=${MOVIE_DB_API_KEY}&include_adult=false`;
+      const { results } = await fetch(`/search.json?term=${term}`, { signal }).then((r) => r.json());
 
-      fetch(url, { signal })
-        .then(async (res) => {
-          const data = await res.json();
-          searchResults = data?.results || [];
+      searchResults = results;
 
-          searching = false;
-        })
-        .catch(function (e) {
-          console.log(' error: ' + e.message);
-          searching = false;
-        });
-    } else {
-      searching = false;
+      console.log(searchResults);
     }
   };
 
@@ -45,22 +29,25 @@
   };
 
   const debouncedInput = debounce(handleInput, 350);
+
+  const hyphenedNamed = (title) =>
+    title
+      .split(' ')
+      .join('-')
+      .replace(/[^a-zA-Z0-9-_]+/gi, '')
+      .toLowerCase();
 </script>
 
 <h1 class="text-3xl font-bold underline text-center pb-4 pt-4 sm:pt-8 md:pt-12">Find your subtitle</h1>
 
 <Search bind:value on:input={debouncedInput} />
 
-{#if searching}
-  <InlineLoading status="active" description="Searching..." class="pt-4" />
-{/if}
-
 {#if searchResults.length}
   <UnorderedList>
     {#each searchResults as item}
       <ListItem>
-        <Link href={`/subtitles/${item.media_type}-${item.id}`}>
-          {item.title}
+        <Link href={`/subtitles/${item.media_type}-${item.id}-${hyphenedNamed(item.title || item.original_name)}`}>
+          {item.title || item.original_name}
         </Link>
       </ListItem>
     {/each}
